@@ -5,6 +5,14 @@ import (
 )
 
 type (
+	ID struct {
+		ID int `json:"id" form:"id" validate:"min(1,入参ID不能为空)"`
+	}
+
+	IDs struct {
+		IDs []int `json:"ids" form:"ids" validate:"minlength(1,入参ID不能为空)"`
+	}
+
 	PageReq struct {
 		Limit int `form:"limit" validate:"min(1,无效的分页数据)"`
 		Page  int `form:"page"`

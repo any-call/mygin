@@ -3,7 +3,7 @@ package mygin
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/any-call/gobase/util/myvalidator"
+	"gitee.com/any-call/gobase/util/myvalidator"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"net/http"

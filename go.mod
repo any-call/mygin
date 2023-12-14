@@ -1,11 +1,11 @@
-module github.com/any-call/mygin
+module gitee.com/any-call/mygin
 
 go 1.18
 
 require gorm.io/gorm v1.25.5
 
 require (
-	github.com/any-call/gobase v1.8.0 // indirect
+	gitee.com/any-call/gobase v1.8.5 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect

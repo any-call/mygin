@@ -30,11 +30,12 @@ func Pagination(db *gorm.DB, req PageReq, count *int64, list any) (err error) {
 	if *count == 0 {
 		return
 	}
-	if req.Limit == 0 {
+
+	if req.Limit <= 0 {
 		req.Limit = 10
 	}
 
-	if req.Page == 0 {
+	if req.Page <= 0 {
 		req.Page = 1
 	}
 

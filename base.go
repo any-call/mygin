@@ -25,28 +25,7 @@ type (
 	}
 )
 
-func Pagination(db *gorm.DB, req PageReq, count *int64, list any) (err error) {
-	if err = db.Count(count).Error; err != nil {
-		return
-	}
-	if *count == 0 {
-		return
-	}
-
-	if req.Limit <= 0 {
-		req.Limit = 10
-	}
-
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-
-	err = db.Offset(req.Limit * (req.Page - 1)).Limit(req.Limit).Find(list).Error
-
-	return
-}
-
-func PaginationEx[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) {
+func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) {
 	if err = db.Count(&(resp.Total)).Error; err != nil {
 		return
 	}

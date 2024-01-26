@@ -47,3 +47,24 @@ func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) 
 
 	return
 }
+
+func Pagination_other(db *gorm.DB, limit, page int, count *int64, list any) (err error) {
+	if err = db.Count(count).Error; err != nil {
+		return
+	}
+	if *count == 0 {
+		return
+	}
+
+	if limit <= 0 {
+		limit = 10
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+
+	err = db.Offset(limit * (page - 1)).Limit(limit).Find(list).Error
+
+	return
+}

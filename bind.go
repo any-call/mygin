@@ -181,7 +181,14 @@ func bindForm[REQ any](ctx *gin.Context, req *REQ) (err error) {
 }
 
 func validate[REQ any](req *REQ) (err error) {
-	return myvalidator.Validate(req)
+	err = myvalidator.Validate(req)
+	if err != nil {
+		if trsMsg := translateMsg(req, err.Error()); trsMsg != nil {
+			return trsMsg
+		}
+	}
+
+	return err
 }
 
 func check[REQ any](req *REQ) (err error) {
@@ -192,6 +199,29 @@ loop:
 	} {
 		if value.IsValid() {
 			if values := value.Call([]reflect.Value{}); values != nil && len(values) > 0 {
+				for _, val := range values {
+					if val.CanInterface() {
+						if inter := val.Interface(); inter != nil {
+							if err = inter.(error); err != nil {
+								break loop
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
+func translateMsg[REQ any](req *REQ, key string) (err error) {
+loop:
+	for _, value := range []reflect.Value{
+		reflect.ValueOf(req).MethodByName("TranslateMSG"),
+		reflect.ValueOf(&req).MethodByName("TranslateMSG"),
+	} {
+		if value.IsValid() {
+			if values := value.Call([]reflect.Value{reflect.ValueOf(key)}); values != nil && len(values) > 0 {
 				for _, val := range values {
 					if val.CanInterface() {
 						if inter := val.Interface(); inter != nil {

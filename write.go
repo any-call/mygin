@@ -32,11 +32,11 @@ func WriteSuccessJSON(ctx *gin.Context, data any) {
 }
 
 func WriteServerErrorJSON(ctx *gin.Context, err error) {
-	WriteJSON(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "error", err, nil)
+	WriteJSON(ctx, http.StatusInternalServerError, http.StatusOK, "error", err, nil)
 }
 
 func WriteBindError(ctx *gin.Context, err error) {
-	WriteJSON(ctx, http.StatusBadRequest, http.StatusBadRequest, "", err, nil)
+	WriteJSON(ctx, http.StatusBadRequest, http.StatusOK, "", err, nil)
 }
 
 func WriteBindCodeSimple(httpCode int, ctx *gin.Context, str string) {

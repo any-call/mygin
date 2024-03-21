@@ -11,6 +11,24 @@ type kv struct {
 	Data any    `json:"data,omitempty"`
 }
 
+var (
+	serverError         int = http.StatusInternalServerError
+	serverErrorHttpCode int = http.StatusOK
+
+	bindError         int = http.StatusBadRequest
+	bindErrorHttpCode int = http.StatusOK
+)
+
+func RegisterServerError(code int, httpCode int) {
+	serverError = code
+	serverErrorHttpCode = httpCode
+}
+
+func RegisterBindParamError(code int, httpCode int) {
+	bindError = code
+	bindErrorHttpCode = httpCode
+}
+
 func WriteJSON(ctx *gin.Context, code, httpCode int, msg string, err error, data any) {
 	dd := kv{Code: code, Msg: msg, Data: data}
 	if err != nil {
@@ -32,11 +50,11 @@ func WriteSuccessJSON(ctx *gin.Context, data any) {
 }
 
 func WriteServerErrorJSON(ctx *gin.Context, err error) {
-	WriteJSON(ctx, http.StatusInternalServerError, http.StatusOK, "error", err, nil)
+	WriteJSON(ctx, serverError, serverErrorHttpCode, "error", err, nil)
 }
 
 func WriteBindError(ctx *gin.Context, err error) {
-	WriteJSON(ctx, http.StatusBadRequest, http.StatusOK, "", err, nil)
+	WriteJSON(ctx, bindError, bindErrorHttpCode, "", err, nil)
 }
 
 func WriteBindCodeSimple(httpCode int, ctx *gin.Context, str string) {

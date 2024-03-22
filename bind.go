@@ -59,6 +59,22 @@ func FormReqResp[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ
 	do[REQ, RESP](ctx, req, bindForm[REQ], validate[REQ], check[REQ], thenFunc)
 }
 
+func UriEncode(ctx *gin.Context, thenFunc noReqNoRespThenFunc) {
+	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc))
+}
+
+func UriEncodeReq[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ]) {
+	do[REQ, noResp](ctx, req, bindFormUriEncode[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc))
+}
+
+func UriEncodeResp[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP]) {
+	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc))
+}
+
+func UriEncodeReqResp[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP]) {
+	do[REQ, RESP](ctx, req, bindFormUriEncode[REQ], validate[REQ], check[REQ], thenFunc)
+}
+
 func do[REQ, RESP any](ctx *gin.Context, req REQ, bindFunc bindFunc[REQ], validateFunc validateFunc[REQ], checkFunc checkFunc[REQ], thenFunc thenFunc[REQ, RESP]) {
 	if fn := bindFunc; fn != nil {
 		if err := fn(ctx, &req); err != nil {
@@ -178,6 +194,17 @@ func bindForm[REQ any](ctx *gin.Context, req *REQ) (err error) {
 		}
 	}
 	return ctx.ShouldBindWith(req, binding.Form)
+}
+
+func bindFormUriEncode[REQ any](ctx *gin.Context, req *REQ) (err error) {
+	if haveEncryptionData(ctx, "body") {
+		if value, ok := ctx.Get("encryption_data"); ok {
+			if values, okk := value.([]byte); okk {
+				return json.Unmarshal(values, req)
+			}
+		}
+	}
+	return ctx.ShouldBindWith(req, formUrlEncode{})
 }
 
 func validate[REQ any](req *REQ) (err error) {

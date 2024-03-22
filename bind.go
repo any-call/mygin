@@ -204,7 +204,7 @@ func bindFormUriEncode[REQ any](ctx *gin.Context, req *REQ) (err error) {
 			}
 		}
 	}
-	return ctx.ShouldBindWith(req, formUrlEncode{})
+	return ctx.ShouldBindBodyWith(req, formUrlEncode{})
 }
 
 func validate[REQ any](req *REQ) (err error) {

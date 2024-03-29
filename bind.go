@@ -106,7 +106,14 @@ func do[REQ, RESP any](ctx *gin.Context, req REQ, bindFunc bindFunc[REQ], valida
 					respStr := fmt.Sprintf("%v", resp)
 					ctx.String(http.StatusOK, respStr)
 				default:
-					WriteSuccessJSON(ctx, resp)
+					{
+						if log := getSuccessLog(&req); log != nil {
+							ctx.Set("logs", log)
+						}
+
+						WriteSuccessJSON(ctx, resp)
+					}
+
 				}
 			}
 		}
@@ -253,6 +260,29 @@ loop:
 					if val.CanInterface() {
 						if inter := val.Interface(); inter != nil {
 							if err = inter.(error); err != nil {
+								break loop
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
+func getSuccessLog[REQ any](req *REQ) (log any) {
+loop:
+	for _, value := range []reflect.Value{
+		reflect.ValueOf(req).MethodByName("GetSuccessLogs"),
+		reflect.ValueOf(&req).MethodByName("GetSuccessLogs"),
+	} {
+		if value.IsValid() {
+			if values := value.Call([]reflect.Value{}); values != nil && len(values) > 0 {
+				for _, val := range values {
+					if val.CanInterface() {
+						if inter := val.Interface(); inter != nil {
+							if log != nil {
 								break loop
 							}
 						}

@@ -270,26 +270,3 @@ loop:
 	}
 	return
 }
-
-func getSuccessLog[REQ any](req *REQ) (log any) {
-loop:
-	for _, value := range []reflect.Value{
-		reflect.ValueOf(req).MethodByName("GetSuccessLogs"),
-		reflect.ValueOf(&req).MethodByName("GetSuccessLogs"),
-	} {
-		if value.IsValid() {
-			if values := value.Call([]reflect.Value{}); values != nil && len(values) > 0 {
-				for _, val := range values {
-					if val.CanInterface() {
-						if inter := val.Interface(); inter != nil {
-							if log != nil {
-								break loop
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	return
-}

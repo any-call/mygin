@@ -96,9 +96,13 @@ func do[REQ, RESP any](ctx *gin.Context, req REQ, bindFunc bindFunc[REQ], valida
 	}
 
 	if fn := thenFunc; fn != nil {
-		if resp, err := thenFunc(req); err != nil {
+		if resp, log, err := thenFunc(req); err != nil {
 			WriteServerErrorJSON(ctx, err)
 		} else {
+			if log != nil {
+				ctx.Set("logs", log)
+			}
+
 			if respType := reflect.TypeOf(resp); respType != nil {
 				respTypeKind := respType.Kind()
 				switch {
@@ -107,10 +111,6 @@ func do[REQ, RESP any](ctx *gin.Context, req REQ, bindFunc bindFunc[REQ], valida
 					ctx.String(http.StatusOK, respStr)
 				default:
 					{
-						if log := getSuccessLog(&req); log != nil {
-							ctx.Set("logs", log)
-						}
-
 						WriteSuccessJSON(ctx, resp)
 					}
 
@@ -127,23 +127,23 @@ type (
 	bindFunc[REQ any]       func(ctx *gin.Context, req *REQ) (err error)
 	validateFunc[REQ any]   func(req *REQ) (err error)
 	checkFunc[REQ any]      func(req *REQ) (err error)
-	thenFunc[REQ, RESP any] func(req REQ) (resp RESP, err error)
+	thenFunc[REQ, RESP any] func(req REQ) (resp RESP, log any, err error)
 
-	reqNoRespThenFunc[REQ any]  func(req REQ) (err error)
-	noReqRespThenFunc[RESP any] func() (resp RESP, err error)
-	noReqNoRespThenFunc         func() (err error)
+	reqNoRespThenFunc[REQ any]  func(req REQ) (log any, err error)
+	noReqRespThenFunc[RESP any] func() (resp RESP, log any, err error)
+	noReqNoRespThenFunc         func() (log any, err error)
 )
 
 func reqNoRespThenFuncWrap[REQ any](thenFunc reqNoRespThenFunc[REQ]) thenFunc[REQ, noResp] {
-	return func(req REQ) (resp noResp, err error) { err = thenFunc(req); return }
+	return func(req REQ) (resp noResp, log any, err error) { log, err = thenFunc(req); return }
 }
 
 func noReqRespThenFuncWrap[RESP any](thenFunc noReqRespThenFunc[RESP]) thenFunc[noReq, RESP] {
-	return func(req noReq) (resp RESP, err error) { resp, err = thenFunc(); return }
+	return func(req noReq) (resp RESP, log any, err error) { resp, log, err = thenFunc(); return }
 }
 
 func noReqNoRespThenFuncWrap(thenFunc noReqNoRespThenFunc) thenFunc[noReq, noResp] {
-	return func(req noReq) (resp noResp, err error) { err = thenFunc(); return }
+	return func(req noReq) (resp noResp, log any, err error) { log, err = thenFunc(); return }
 }
 
 func haveEncryptionData(ctx *gin.Context, dataType string) bool {

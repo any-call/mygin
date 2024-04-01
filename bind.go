@@ -97,8 +97,14 @@ func do[REQ, RESP any](ctx *gin.Context, req REQ, bindFunc bindFunc[REQ], valida
 
 	if fn := thenFunc; fn != nil {
 		if resp, log, err := thenFunc(req); err != nil {
+			ctx.Set("result", err.Error())
+			if log != nil {
+				ctx.Set("logs", log)
+			}
+
 			WriteServerErrorJSON(ctx, err)
 		} else {
+			ctx.Set("result", "")
 			if log != nil {
 				ctx.Set("logs", log)
 			}

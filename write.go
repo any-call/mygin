@@ -19,16 +19,6 @@ var (
 	bindErrorHttpCode int = http.StatusOK
 )
 
-func RegisterServerError(code int, httpCode int) {
-	serverError = code
-	serverErrorHttpCode = httpCode
-}
-
-func RegisterBindParamError(code int, httpCode int) {
-	bindError = code
-	bindErrorHttpCode = httpCode
-}
-
 func WriteJSON(ctx *gin.Context, code, httpCode int, msg string, err error, data any) {
 	dd := kv{Code: code, Msg: msg, Data: data}
 	if err != nil {

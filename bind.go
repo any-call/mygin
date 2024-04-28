@@ -133,11 +133,11 @@ type (
 	bindFunc[REQ any]       func(ctx *gin.Context, req *REQ) (err error)
 	validateFunc[REQ any]   func(req *REQ) (err error)
 	checkFunc[REQ any]      func(req *REQ) (err error)
-	thenFunc[REQ, RESP any] func(req REQ) (resp RESP, err error)
+	thenFunc[REQ, RESP any] func(req REQ) (resp RESP, log any, err error)
 
-	reqNoRespThenFunc[REQ any]  func(req REQ) (err error)
-	noReqRespThenFunc[RESP any] func() (resp RESP, err error)
-	noReqNoRespThenFunc         func() (err error)
+	reqNoRespThenFunc[REQ any]  func(req REQ) (log any, err error)
+	noReqRespThenFunc[RESP any] func() (resp RESP, log any, err error)
+	noReqNoRespThenFunc         func() (log any, err error)
 )
 
 func reqNoRespThenFuncWrap[REQ any](thenFunc reqNoRespThenFunc[REQ]) thenFunc[REQ, noResp] {

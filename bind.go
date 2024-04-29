@@ -11,6 +11,16 @@ import (
 	"reflect"
 )
 
+func SetServerError(code int, httpCode int) {
+	serverError = code
+	serverErrorHttpCode = httpCode
+}
+
+func SetBindParamError(code int, httpCode int) {
+	bindError = code
+	bindErrorHttpCode = httpCode
+}
+
 func Query(ctx *gin.Context, thenFunc noReqNoRespThenFunc) {
 	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc))
 }

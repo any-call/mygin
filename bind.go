@@ -267,8 +267,8 @@ loop:
 func translateMsg[REQ any](req *REQ, key string) (err error) {
 loop:
 	for _, value := range []reflect.Value{
-		reflect.ValueOf(req).MethodByName("TranslateMSG"),
-		reflect.ValueOf(&req).MethodByName("TranslateMSG"),
+		reflect.ValueOf(req).MethodByName("TranslateLanguage"),
+		reflect.ValueOf(&req).MethodByName("TranslateLanguage"),
 	} {
 		if value.IsValid() {
 			if values := value.Call([]reflect.Value{reflect.ValueOf(key)}); values != nil && len(values) > 0 {

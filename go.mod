@@ -1,9 +1,9 @@
-module gitee.com/any-call/mygin
+module github.com/any-call/mygin
 
 go 1.18
 
 require (
-	gitee.com/any-call/gobase v1.8.6
+	github.com/any-call/gobase v1.9.0
 	github.com/gin-gonic/gin v1.9.1
 	gorm.io/gorm v1.25.5
 )

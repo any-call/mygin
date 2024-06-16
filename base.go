@@ -14,8 +14,8 @@ type (
 	}
 
 	PageReq struct {
-		Limit int `form:"limit" validate:"min(1,无效的分页数据)"`
-		Page  int `form:"page"`
+		Limit int `form:"limit" json:"limit"`
+		Page  int `form:"page" json:"page"`
 	}
 	PageResp[T any] struct {
 		Total int64 `json:"total"`

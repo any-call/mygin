@@ -36,7 +36,7 @@ func WriteJSON(ctx *gin.Context, code, httpCode int, msg string, err error, data
 }
 
 func WriteSuccessJSON(ctx *gin.Context, data any) {
-	WriteJSON(ctx, 0, http.StatusOK, "", nil, data)
+	WriteJSON(ctx, 0, http.StatusOK, "success", nil, data)
 }
 
 func WriteServerErrorJSON(ctx *gin.Context, err error) {

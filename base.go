@@ -25,6 +25,15 @@ type (
 	}
 )
 
+func (self PageReq) Offset() int {
+	myPage := self.Page
+	if self.Page <= 0 {
+		myPage = 1
+	}
+
+	return self.Limit * (myPage - 1)
+}
+
 func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) {
 	if req.Limit <= 0 {
 		req.Limit = 10

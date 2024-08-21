@@ -25,6 +25,15 @@ type (
 	}
 )
 
+func (p *PageResp[T]) TotalPage() int {
+	if p.Limit <= 0 {
+		return 0 // 防止除以零的情况
+	}
+
+	totalPages := (p.Total + int64(p.Limit) - 1) / int64(p.Limit) // 向上取整计算页数
+	return int(totalPages)
+}
+
 func (self PageReq) Offset() int {
 	myPage := self.Page
 	if self.Page <= 0 {

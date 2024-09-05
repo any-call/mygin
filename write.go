@@ -5,12 +5,6 @@ import (
 	"net/http"
 )
 
-type kv struct {
-	Code int    `json:"code"`
-	Msg  string `json:"msg,omitempty"`
-	Data any    `json:"data,omitempty"`
-}
-
 var (
 	serverError         int = http.StatusInternalServerError
 	serverErrorHttpCode int = http.StatusOK
@@ -20,7 +14,7 @@ var (
 )
 
 func WriteJSON(ctx *gin.Context, code, httpCode int, msg string, err error, data any) {
-	dd := kv{Code: code, Msg: msg, Data: data}
+	dd := BaseResp{Code: code, Msg: msg, Data: data}
 	if err != nil {
 		dd.Msg = err.Error()
 		if cusErr, ok := err.(*Error); ok {

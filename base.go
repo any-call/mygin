@@ -1,6 +1,7 @@
 package mygin
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,12 @@ type (
 		Page  int   `json:"page"`
 		Limit int   `json:"limit"`
 		List  []T   `json:"list"`
+	}
+
+	BaseResp struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg,omitempty"`
+		Data any    `json:"data,omitempty"`
 	}
 )
 
@@ -85,4 +92,37 @@ func Pagination_other(db *gorm.DB, limit, page int, count *int64, list any) (err
 	err = db.Offset(limit * (page - 1)).Limit(limit).Find(list).Error
 
 	return
+}
+
+func PaginationFromArray[T any](list []T, req PageReq) (*PageResp[T], error) {
+	if len(list) == 0 {
+		return nil, fmt.Errorf("list is nil")
+	}
+
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	start := (req.Page - 1) * req.Limit
+	end := start + req.Limit
+	if end > len(list) {
+		end = len(list)
+	}
+
+	if start > end {
+		start = end
+	}
+
+	// 可能需要根据实际情况提供正确的 Total
+	total := int64(len(list)) // 这里只是示例，实际总数应根据具体情况计算
+	return &PageResp[T]{
+		Total: total,
+		Page:  req.Page,
+		Limit: req.Limit,
+		List:  list[start:end],
+	}, nil
 }

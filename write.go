@@ -14,7 +14,7 @@ var (
 )
 
 func WriteJSON(ctx *gin.Context, code, httpCode int, msg string, err error, data any) {
-	dd := BaseResp{Code: code, Msg: msg, Data: data}
+	dd := BaseResp[any]{Code: code, Msg: msg, Data: data}
 	if err != nil {
 		dd.Msg = err.Error()
 		if cusErr, ok := err.(*Error); ok {

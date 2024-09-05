@@ -25,12 +25,22 @@ type (
 		List  []T   `json:"list"`
 	}
 
-	BaseResp struct {
+	BaseResp[T any] struct {
 		Code int    `json:"code"`
 		Msg  string `json:"msg,omitempty"`
-		Data any    `json:"data,omitempty"`
+		Data T      `json:"data,omitempty"`
 	}
 )
+
+func SetServerError(code int, httpCode int) {
+	serverError = code
+	serverErrorHttpCode = httpCode
+}
+
+func SetBindParamError(code int, httpCode int) {
+	bindError = code
+	bindErrorHttpCode = httpCode
+}
 
 func (p *PageResp[T]) TotalPage() int {
 	if p.Limit <= 0 {
@@ -48,6 +58,14 @@ func (self PageReq) Offset() int {
 	}
 
 	return self.Limit * (myPage - 1)
+}
+
+func (self *BaseResp[T]) Error() error {
+	if self.Code != 0 {
+		return fmt.Errorf(self.Msg)
+	}
+
+	return nil
 }
 
 func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) {

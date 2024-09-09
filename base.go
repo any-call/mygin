@@ -2,6 +2,7 @@ package mygin
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
@@ -143,4 +144,13 @@ func PaginationFromArray[T any](list []T, req PageReq) (*PageResp[T], error) {
 		Limit: req.Limit,
 		List:  list[start:end],
 	}, nil
+}
+
+func GetOriginIP(ctx *gin.Context) string {
+	rmtIP := ctx.GetHeader("X-Real-IP")
+	if len(rmtIP) > 0 {
+		return rmtIP
+	}
+
+	return ctx.RemoteIP()
 }

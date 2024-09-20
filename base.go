@@ -1,9 +1,11 @@
 package mygin
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 type (
@@ -153,4 +155,30 @@ func GetOriginIP(ctx *gin.Context) string {
 	}
 
 	return ctx.RemoteIP()
+}
+
+func ParseResponse[DATA any](ret []byte, httpCode int, onCodeErr func(code int)) (info DATA, err error) {
+	if httpCode == http.StatusOK {
+		tmp := BaseResp[DATA]{}
+		if err = json.Unmarshal(ret, &tmp); err != nil {
+			return
+		}
+
+		if err = tmp.Error(); err != nil {
+			if onCodeErr != nil {
+				onCodeErr(tmp.Code)
+			}
+			return
+		}
+
+		info = tmp.Data
+		return
+	} else {
+		if onCodeErr != nil {
+			onCodeErr(httpCode)
+		}
+	}
+
+	err = fmt.Errorf("%s", string(ret))
+	return
 }

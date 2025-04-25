@@ -30,7 +30,7 @@ func Cors() gin.HandlerFunc {
 	}
 }
 
-func AuthSign(signKey string, secretKey string,
+func AuthSign(signKey string, secretKey string, ignoreKeys []string,
 	getParamCb func(ctx *gin.Context) map[string]string,
 	postParamCb func(ctx *gin.Context) map[string]string,
 	putParamCb func(ctx *gin.Context) map[string]string,
@@ -83,6 +83,12 @@ func AuthSign(signKey string, secretKey string,
 		}
 
 		delete(paramMap, signValue)
+		if ignoreKeys != nil && len(ignoreKeys) > 0 {
+			for i, _ := range ignoreKeys {
+				delete(paramMap, ignoreKeys[i])
+			}
+		}
+
 		computedSign := GetAuthSign(paramMap, secretKey)
 		if computedSign != signValue {
 			c.AbortWithStatusJSON(403, gin.H{"error": "invalid sign"})

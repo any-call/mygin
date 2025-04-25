@@ -78,16 +78,14 @@ func AuthSign(signKey string, secretKey string,
 
 		signValue, ok := paramMap[signKey]
 		if !ok {
-			c.String(http.StatusOK, `{"code":402,"msg":"missing sign"}`)
-			c.Abort()
+			c.AbortWithStatusJSON(403, gin.H{"error": "missing sign"})
 			return
 		}
 
 		delete(paramMap, signValue)
 		computedSign := GetAuthSign(paramMap, secretKey)
 		if computedSign != signValue {
-			c.String(http.StatusOK, `{"code":402,"msg":"invalid sign"}`)
-			c.Abort()
+			c.AbortWithStatusJSON(403, gin.H{"error": "invalid sign"})
 			return
 		}
 

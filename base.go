@@ -71,6 +71,36 @@ func (self BaseResp[T]) Error() error {
 	return nil
 }
 
+func PaginationBySQL[T any](db *gorm.DB, baseSql string, req PageReq, resp *PageResp[T]) (err error) {
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	resp.Page = req.Page
+	resp.Limit = req.Limit
+	// 统计总数（包一层 count）
+	countSql := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS t", baseSql)
+	if err := db.Raw(countSql).Scan(&resp.Total).Error; err != nil {
+		return err
+	}
+
+	if resp.Total == 0 {
+		return
+	}
+
+	// 加分页参数
+	offset := req.Limit * (req.Page - 1)
+	pageSql := fmt.Sprintf("%s LIMIT ? OFFSET ?", baseSql)
+	if err := db.Raw(pageSql, req.Limit, offset).Scan(&resp.List).Error; err != nil {
+		return err
+	}
+	return
+}
+
 func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) {
 	if req.Limit <= 0 {
 		req.Limit = 10

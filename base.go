@@ -45,6 +45,10 @@ func SetBindParamError(code int, httpCode int) {
 	bindErrorHttpCode = httpCode
 }
 
+func SetRespCode(code int) {
+	respSuccessCode = code
+}
+
 func (p PageResp[T]) TotalPage() int {
 	if p.Limit <= 0 {
 		return 0 // 防止除以零的情况
@@ -64,7 +68,7 @@ func (self PageReq) Offset() int {
 }
 
 func (self BaseResp[T]) Error() error {
-	if self.Code != 0 {
+	if self.Code != respSuccessCode {
 		return fmt.Errorf(self.Msg)
 	}
 

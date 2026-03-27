@@ -13,22 +13,22 @@ import (
 )
 
 type (
-	ErrorStage   string
-	ErrorHandler func(ctx *gin.Context, stage ErrorStage, err error) bool
+	ErrStage   string
+	ErrHandler func(ctx *gin.Context, stage ErrStage, err error) bool
 )
 
 const (
-	ErrorStageBind     ErrorStage = "bind"
-	ErrorStageValidate ErrorStage = "validate"
-	ErrorStageCheck    ErrorStage = "check"
-	ErrorStageLogic    ErrorStage = "logic"
+	ErrStageBind     ErrStage = "bind"
+	ErrStageValidate ErrStage = "validate"
+	ErrStageCheck    ErrStage = "check"
+	ErrStageLogic    ErrStage = "logic"
 )
 
 func Query(ctx *gin.Context, thenFunc noReqNoRespThenFunc) {
 	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), nil)
 }
 
-func QueryWithErrorHandle(ctx *gin.Context, thenFunc noReqNoRespThenFunc, errHandler ErrorHandler) {
+func QueryWithErrHandler(ctx *gin.Context, thenFunc noReqNoRespThenFunc, errHandler ErrHandler) {
 	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), errHandler)
 }
 
@@ -36,7 +36,7 @@ func QueryReq[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ
 	do[REQ, noResp](ctx, req, bindQuery[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), nil)
 }
 
-func QueryReqWithErrorHandle[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ], errHandler ErrorHandler) {
+func QueryReqWithErrHandler[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ], errHandler ErrHandler) {
 	do[REQ, noResp](ctx, req, bindQuery[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), errHandler)
 }
 
@@ -44,7 +44,7 @@ func QueryResp[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP]) {
 	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), nil)
 }
 
-func QueryRespWithErrorHandle[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP], errHandler ErrorHandler) {
+func QueryRespWithErrHandler[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP], errHandler ErrHandler) {
 	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), errHandler)
 }
 
@@ -52,52 +52,104 @@ func QueryReqResp[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[RE
 	do[REQ, RESP](ctx, req, bindQuery[REQ], validate[REQ], check[REQ], thenFunc, nil)
 }
 
+func QueryReqRespWithErrHandler[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP], errHandler ErrHandler) {
+	do[REQ, RESP](ctx, req, bindQuery[REQ], validate[REQ], check[REQ], thenFunc, errHandler)
+}
+
 func Body(ctx *gin.Context, thenFunc noReqNoRespThenFunc) {
 	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), nil)
+}
+
+func BodyWithErrHandler(ctx *gin.Context, thenFunc noReqNoRespThenFunc, errHandler ErrHandler) {
+	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), errHandler)
 }
 
 func BodyReq[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ]) {
 	do[REQ, noResp](ctx, req, bindJSON[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), nil)
 }
 
+func BodyReqWithErrHandler[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ], errHandler ErrHandler) {
+	do[REQ, noResp](ctx, req, bindJSON[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), errHandler)
+}
+
 func BodyResp[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP]) {
 	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), nil)
+}
+
+func BodyRespWithErrHandler[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP], errHandler ErrHandler) {
+	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), errHandler)
 }
 
 func BodyReqResp[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP]) {
 	do[REQ, RESP](ctx, req, bindJSON[REQ], validate[REQ], check[REQ], thenFunc, nil)
 }
 
+func BodyReqRespWithErrHandler[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP], errHandler ErrHandler) {
+	do[REQ, RESP](ctx, req, bindJSON[REQ], validate[REQ], check[REQ], thenFunc, errHandler)
+}
+
 func Form(ctx *gin.Context, thenFunc noReqNoRespThenFunc) {
 	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), nil)
+}
+
+func FormWithErrHandler(ctx *gin.Context, thenFunc noReqNoRespThenFunc, errHandler ErrHandler) {
+	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), errHandler)
 }
 
 func FormReq[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ]) {
 	do[REQ, noResp](ctx, req, bindForm[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), nil)
 }
 
+func FormReqWithErrHandler[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ], errHandler ErrHandler) {
+	do[REQ, noResp](ctx, req, bindForm[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), errHandler)
+}
+
 func FormResp[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP]) {
 	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), nil)
+}
+
+func FormRespWithErrHandler[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP], errHandler ErrHandler) {
+	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), errHandler)
 }
 
 func FormReqResp[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP]) {
 	do[REQ, RESP](ctx, req, bindForm[REQ], validate[REQ], check[REQ], thenFunc, nil)
 }
 
+func FormReqRespWithErrHandler[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP], errHandler ErrHandler) {
+	do[REQ, RESP](ctx, req, bindForm[REQ], validate[REQ], check[REQ], thenFunc, errHandler)
+}
+
 func UriEncode(ctx *gin.Context, thenFunc noReqNoRespThenFunc) {
 	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), nil)
+}
+
+func UriEncodeWithErrHandler(ctx *gin.Context, thenFunc noReqNoRespThenFunc, errHandler ErrHandler) {
+	do[noReq, noResp](ctx, noReq{}, nil, nil, nil, noReqNoRespThenFuncWrap(thenFunc), errHandler)
 }
 
 func UriEncodeReq[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ]) {
 	do[REQ, noResp](ctx, req, bindFormUriEncode[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), nil)
 }
 
+func UriEncodeReqWithErrHandler[REQ any](ctx *gin.Context, req REQ, thenFunc reqNoRespThenFunc[REQ], errHandler ErrHandler) {
+	do[REQ, noResp](ctx, req, bindFormUriEncode[REQ], validate[REQ], check[REQ], reqNoRespThenFuncWrap[REQ](thenFunc), errHandler)
+}
+
 func UriEncodeResp[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP]) {
 	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), nil)
 }
 
+func UriEncodeRespWithErrHandler[RESP any](ctx *gin.Context, thenFunc noReqRespThenFunc[RESP], errHandler ErrHandler) {
+	do[noReq, RESP](ctx, noReq{}, nil, nil, nil, noReqRespThenFuncWrap[RESP](thenFunc), errHandler)
+}
+
 func UriEncodeReqResp[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP]) {
 	do[REQ, RESP](ctx, req, bindFormUriEncode[REQ], validate[REQ], check[REQ], thenFunc, nil)
+}
+
+func UriEncodeReqRespWithErrHandler[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFunc[REQ, RESP], errHandler ErrHandler) {
+	do[REQ, RESP](ctx, req, bindFormUriEncode[REQ], validate[REQ], check[REQ], thenFunc, errHandler)
 }
 
 func do[REQ, RESP any](ctx *gin.Context,
@@ -105,10 +157,10 @@ func do[REQ, RESP any](ctx *gin.Context,
 	validateFunc validateFunc[REQ],
 	checkFunc checkFunc[REQ],
 	thenFunc thenFunc[REQ, RESP],
-	errHandler ErrorHandler) {
+	errHandler ErrHandler) {
 	if fn := bindFunc; fn != nil {
 		if err := fn(ctx, &req); err != nil {
-			if errHandler != nil && errHandler(ctx, ErrorStageBind, err) {
+			if errHandler != nil && errHandler(ctx, ErrStageBind, err) {
 				return
 			}
 			WriteBindError(ctx, err)
@@ -117,7 +169,7 @@ func do[REQ, RESP any](ctx *gin.Context,
 	}
 	if fn := validateFunc; fn != nil {
 		if err := fn(&req); err != nil {
-			if errHandler != nil && errHandler(ctx, ErrorStageValidate, err) {
+			if errHandler != nil && errHandler(ctx, ErrStageValidate, err) {
 				return
 			}
 			WriteBindError(ctx, err)
@@ -126,7 +178,7 @@ func do[REQ, RESP any](ctx *gin.Context,
 	}
 	if fn := checkFunc; fn != nil {
 		if err := fn(&req); err != nil {
-			if errHandler != nil && errHandler(ctx, ErrorStageCheck, err) {
+			if errHandler != nil && errHandler(ctx, ErrStageCheck, err) {
 				return
 			}
 			WriteBindError(ctx, err)
@@ -141,7 +193,7 @@ func do[REQ, RESP any](ctx *gin.Context,
 				ctx.Set("logs", log)
 			}
 
-			if errHandler != nil && errHandler(ctx, ErrorStageLogic, err) {
+			if errHandler != nil && errHandler(ctx, ErrStageLogic, err) {
 				return
 			}
 			WriteServerErrorJSON(ctx, err)

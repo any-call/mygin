@@ -79,27 +79,18 @@ func UriEncodeReqResp[REQ, RESP any](ctx *gin.Context, req REQ, thenFunc thenFun
 func do[REQ, RESP any](ctx *gin.Context, req REQ, bindFunc bindFunc[REQ], validateFunc validateFunc[REQ], checkFunc checkFunc[REQ], thenFunc thenFunc[REQ, RESP]) {
 	if fn := bindFunc; fn != nil {
 		if err := fn(ctx, &req); err != nil {
-			if tryWriteError(ctx, err) {
-				return
-			}
 			WriteBindError(ctx, err)
 			return
 		}
 	}
 	if fn := validateFunc; fn != nil {
 		if err := fn(&req); err != nil {
-			if tryWriteError(ctx, err) {
-				return
-			}
 			WriteBindError(ctx, err)
 			return
 		}
 	}
 	if fn := checkFunc; fn != nil {
 		if err := fn(&req); err != nil {
-			if tryWriteError(ctx, err) {
-				return
-			}
 			WriteBindError(ctx, err)
 			return
 		}
@@ -112,9 +103,6 @@ func do[REQ, RESP any](ctx *gin.Context, req REQ, bindFunc bindFunc[REQ], valida
 				ctx.Set("logs", log)
 			}
 
-			if tryWriteError(ctx, err) {
-				return
-			}
 			WriteServerErrorJSON(ctx, err)
 		} else {
 			ctx.Set("result", "")

@@ -106,26 +106,16 @@ func PaginationBySQL[T any](db *gorm.DB, baseSql string, req PageReq, resp *Page
 }
 
 func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) {
-	if req.Limit <= 0 {
-		req.Limit = 10
+	total, list, page, limit, err := PaginationByLimitPage[T](db, req.Limit, req.Page)
+	if err != nil {
+		return err
 	}
 
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-
-	resp.Page = req.Page
-	resp.Limit = req.Limit
-
-	if err = db.Count(&(resp.Total)).Error; err != nil {
-		return
-	}
-	if resp.Total == 0 {
-		return
-	}
-
-	err = db.Offset(req.Limit * (req.Page - 1)).Limit(req.Limit).Find(&(resp.List)).Error
-	return
+	resp.Total = total
+	resp.Page = page
+	resp.Limit = limit
+	resp.List = list
+	return nil
 }
 
 func PaginationUsingCount[T any](db *gorm.DB, req PageReq, resp *PageResp[T], count int64) (err error) {
@@ -167,6 +157,30 @@ func Pagination_other(db *gorm.DB, limit, page int, count *int64, list any) (err
 
 	err = db.Offset(limit * (page - 1)).Limit(limit).Find(list).Error
 
+	return
+}
+
+func PaginationByLimitPage[T any](db *gorm.DB, limit, page int) (total int64, list []T, realPage int, realLimit int, err error) {
+	if limit <= 0 {
+		limit = 10
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+
+	realPage = page
+	realLimit = limit
+
+	if err = db.Count(&total).Error; err != nil {
+		return
+	}
+
+	if total == 0 {
+		return
+	}
+
+	err = db.Offset(limit * (page - 1)).Limit(limit).Find(&list).Error
 	return
 }
 

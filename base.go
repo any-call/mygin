@@ -33,7 +33,28 @@ type (
 		Msg  string `json:"msg,omitempty"`
 		Data T      `json:"data,omitempty"`
 	}
+
+	PaginationOption func(*paginationConfig)
+
+	paginationConfig struct {
+		countDB  *gorm.DB
+		count    int64
+		hasCount bool
+	}
 )
+
+func WithPaginationCountDB(db *gorm.DB) PaginationOption {
+	return func(cfg *paginationConfig) {
+		cfg.countDB = db
+	}
+}
+
+func WithPaginationCount(count int64) PaginationOption {
+	return func(cfg *paginationConfig) {
+		cfg.count = count
+		cfg.hasCount = true
+	}
+}
 
 func SetServerError(code int, httpCode int) {
 	serverError = code
@@ -76,33 +97,16 @@ func (self BaseResp[T]) Error() error {
 }
 
 func PaginationBySQL[T any](db *gorm.DB, baseSql string, req PageReq, resp *PageResp[T]) (err error) {
-	if req.Limit <= 0 {
-		req.Limit = 10
-	}
-
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-
-	resp.Page = req.Page
-	resp.Limit = req.Limit
-	// 统计总数（包一层 count）
-	countSql := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS t", baseSql)
-	if err := db.Raw(countSql).Scan(&resp.Total).Error; err != nil {
+	total, list, page, limit, err := PaginationBySQLLimitPage[T](db, baseSql, req.Limit, req.Page)
+	if err != nil {
 		return err
 	}
 
-	if resp.Total == 0 {
-		return
-	}
-
-	// 加分页参数
-	offset := req.Limit * (req.Page - 1)
-	pageSql := fmt.Sprintf("%s LIMIT ? OFFSET ?", baseSql)
-	if err := db.Raw(pageSql, req.Limit, offset).Scan(&resp.List).Error; err != nil {
-		return err
-	}
-	return
+	resp.Total = total
+	resp.Page = page
+	resp.Limit = limit
+	resp.List = list
+	return nil
 }
 
 func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) {
@@ -119,60 +123,48 @@ func Pagination[T any](db *gorm.DB, req PageReq, resp *PageResp[T]) (err error) 
 }
 
 func PaginationUsingCount[T any](db *gorm.DB, req PageReq, resp *PageResp[T], count int64) (err error) {
-	if req.Limit <= 0 {
-		req.Limit = 10
+	total, list, page, limit, err := PaginationByLimitPage[T](db, req.Limit, req.Page, WithPaginationCount(count))
+	if err != nil {
+		return err
 	}
 
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-
-	resp.Page = req.Page
-	resp.Limit = req.Limit
-
-	resp.Total = count
-	if resp.Total == 0 {
-		return
-	}
-
-	err = db.Offset(req.Limit * (req.Page - 1)).Limit(req.Limit).Find(&(resp.List)).Error
-	return
+	resp.Total = total
+	resp.Page = page
+	resp.Limit = limit
+	resp.List = list
+	return nil
 }
 
-func Pagination_other(db *gorm.DB, limit, page int, count *int64, list any) (err error) {
-	if err = db.Count(count).Error; err != nil {
-		return
-	}
-	if *count == 0 {
-		return
-	}
+//func Pagination_other(db *gorm.DB, limit, page int, count *int64, list any) (err error) {
+//	if err = db.Count(count).Error; err != nil {
+//		return
+//	}
+//	if *count == 0 {
+//		return
+//	}
+//
+//	if limit <= 0 {
+//		limit = 10
+//	}
+//
+//	if page <= 0 {
+//		page = 1
+//	}
+//
+//	err = db.Offset(limit * (page - 1)).Limit(limit).Find(list).Error
+//
+//	return
+//}
 
-	if limit <= 0 {
-		limit = 10
-	}
+func PaginationByLimitPage[T any](db *gorm.DB, limit, page int, opts ...PaginationOption) (total int64, list []T, realPage int, realLimit int, err error) {
+	realLimit, realPage = normalizePageLimit(limit, page)
+	cfg := newPaginationConfig(opts...)
 
-	if page <= 0 {
-		page = 1
-	}
-
-	err = db.Offset(limit * (page - 1)).Limit(limit).Find(list).Error
-
-	return
-}
-
-func PaginationByLimitPage[T any](db *gorm.DB, limit, page int) (total int64, list []T, realPage int, realLimit int, err error) {
-	if limit <= 0 {
-		limit = 10
-	}
-
-	if page <= 0 {
-		page = 1
-	}
-
-	realPage = page
-	realLimit = limit
-
-	if err = db.Count(&total).Error; err != nil {
+	if total, err = paginationCount(db, cfg, func() (int64, error) {
+		var total int64
+		err := db.Count(&total).Error
+		return total, err
+	}); err != nil {
 		return
 	}
 
@@ -180,8 +172,65 @@ func PaginationByLimitPage[T any](db *gorm.DB, limit, page int) (total int64, li
 		return
 	}
 
-	err = db.Offset(limit * (page - 1)).Limit(limit).Find(&list).Error
+	err = db.Offset(realLimit * (realPage - 1)).Limit(realLimit).Find(&list).Error
 	return
+}
+
+func PaginationBySQLLimitPage[T any](db *gorm.DB, baseSql string, limit, page int, opts ...PaginationOption) (total int64, list []T, realPage int, realLimit int, err error) {
+	realLimit, realPage = normalizePageLimit(limit, page)
+	cfg := newPaginationConfig(opts...)
+
+	if total, err = paginationCount(db, cfg, func() (int64, error) {
+		var total int64
+		countSql := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS t", baseSql)
+		err := db.Raw(countSql).Scan(&total).Error
+		return total, err
+	}); err != nil {
+		return
+	}
+
+	if total == 0 {
+		return
+	}
+
+	pageSql := fmt.Sprintf("%s LIMIT ? OFFSET ?", baseSql)
+	err = db.Raw(pageSql, realLimit, realLimit*(realPage-1)).Scan(&list).Error
+	return
+}
+
+func normalizePageLimit(limit, page int) (realLimit, realPage int) {
+	if limit <= 0 {
+		limit = 10
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+
+	return limit, page
+}
+
+func newPaginationConfig(opts ...PaginationOption) paginationConfig {
+	cfg := paginationConfig{}
+	for _, opt := range opts {
+		if opt != nil {
+			opt(&cfg)
+		}
+	}
+	return cfg
+}
+
+func paginationCount(db *gorm.DB, cfg paginationConfig, defaultCount func() (int64, error)) (int64, error) {
+	if cfg.hasCount {
+		return cfg.count, nil
+	}
+
+	if cfg.countDB != nil {
+		var total int64
+		return total, cfg.countDB.Count(&total).Error
+	}
+
+	return defaultCount()
 }
 
 func PaginationFromArray[T any](list []T, req PageReq) (*PageResp[T], error) {
